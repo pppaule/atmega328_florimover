@@ -4,7 +4,7 @@
 // --- Funktionsdeklarationen (Prototypen) ---
 void resetDMX();
 void sendDMXPattern(int buttonIndex, boolean flip_x, boolean flip_y, boolean fine);
-void updateLEDs(int buttonNumber);
+void updateLEDs(int buttonNumber, boolean fine_active, boolean flipX_active, boolean flipY_active);
 
 
 // ACHTUNG: Die Reihenfolge hier entspricht den physischen Pins D2, D3, D5, D6, D7, D8, D9, D10, D11
@@ -75,38 +75,23 @@ void loop() {
     if (buttonState[i] == LOW && lastButtonState[i] == HIGH) {
       if (BUTTON_NAMES[i] == "FINE") {
         fine_active = !fine_active; // Modus umschalten
- 
       }
-      // Spezielle Behandlung für FLIP_X und FLIP_Y als Umschalter
       else if (BUTTON_NAMES[i] == "FLIP_X") {
-        flipX_active = !flipX_active; // Modus umschalten
- 
-      
-      } else if (BUTTON_NAMES[i] == "FLIP_Y") { // Angepasster Index für FLIP_Y
+        flipX_active = !flipX_active; // Modus umschalten     
+      } else if (BUTTON_NAMES[i] == "FLIP_Y") { 
         flipY_active = !flipY_active; // Modus umschalten
-   
-
-      
       }
-
       if (BUTTON_NAMES[i] != "FINE" && BUTTON_NAMES[i] != "FLIP_X" && BUTTON_NAMES[i] != "FLIP_Y") { 
         sendDMXPattern(i, flipX_active, flipY_active, fine_active); 
       }
-
-      updateLEDs(i + 1); 
+      updateLEDs(i + 1, fine_active, flipX_active, flipY_active); // LED-Status aktualisieren
     }
-   
    
    // Button release 
     else if (buttonState[i] == HIGH && lastButtonState[i] == LOW) {
-      // Nur Bewegung/Fokus stoppen, wenn es keine Modus-Taste ist
-      if (BUTTON_NAMES[i] != "FINE" && BUTTON_NAMES[i] != "FLIP_X" && BUTTON_NAMES[i] != "FLIP_Y") { // Angepasster Index für FLIP_Y
-        // Pan/Tilt/Fokus Bewegung stoppen, indem die Kanäle auf "keine Bewegung" gesetzt werden
+      if (BUTTON_NAMES[i] != "FINE" && BUTTON_NAMES[i] != "FLIP_X" && BUTTON_NAMES[i] != "FLIP_Y") { 
         resetDMX();
-      }
-      if (i == 0 && !fine_active) digitalWrite(LED_1_PIN, LOW); // LED für FINE
-      if (i == 1 && !flipX_active) digitalWrite(LED_2_PIN, LOW); // LED für FLIP_X
-      if (i == 2 && !flipY_active) digitalWrite(LED_3_PIN, LOW); // LED für FLIP_Y (ACHTUNG: LED_3_PIN ist A2, Button ist jetzt 4_FLIP_Y)
+      } 
     }
     lastButtonState[i] = buttonState[i];
   }
@@ -166,19 +151,12 @@ void sendDMXPattern(int buttonIndex, boolean flip_x, boolean flip_y, boolean fin
 }
 
 // Funktion zum Aktualisieren der LEDs
-void updateLEDs(int buttonNumber) {
-
+void updateLEDs(int buttonNumber, boolean fine_active, boolean flipX_active, boolean flipY_active) {
   if (buttonNumber == 1) { 
     digitalWrite(LED_1_PIN, fine_active ? HIGH : LOW);
   } else if (buttonNumber == 2) { 
     digitalWrite(LED_2_PIN, flipX_active ? HIGH : LOW);
   } else if (buttonNumber == 3) { 
-
-    digitalWrite(LED_3_PIN, HIGH); 
-  } else {
-
-    digitalWrite(LED_1_PIN, LOW);
-    digitalWrite(LED_2_PIN, LOW);
-    digitalWrite(LED_3_PIN, LOW);
+    digitalWrite(LED_3_PIN,flipY_active ? HIGH : LOW); 
   }
 }
